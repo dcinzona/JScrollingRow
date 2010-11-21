@@ -25,9 +25,6 @@
 #import "JScrollingRowCell.h"
 
 
-NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemoryWarningNotification";
-
-
 @interface JScrollingRow (Private)
 - (BOOL)isDisplayingCellForIndex:(NSUInteger)index;
 - (void)layoutCells;
@@ -50,13 +47,9 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 {
     if ((self = [super initWithFrame:frame]))
 	{
-        [self setShowsVerticalScrollIndicator: NO];
+        [self setShowsVerticalScrollIndicator:NO];
 		recycledCells = [[NSMutableSet alloc] init];
 		visibleCells = [[NSMutableSet alloc] init];
-		
-		// No sense in keeping the recycled cells set in tact if we're short on memory.
-		// This just means in tight memory situations, we'll have to do more allocation,
-		// which isn't as fast.
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(emptyRecycledCells)
 													 name:UIApplicationDidReceiveMemoryWarningNotification
@@ -68,7 +61,6 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
 	[recycledCells release];
 	[visibleCells release];
 	[_indexPath release];
@@ -99,7 +91,10 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 
 - (CGRect)frameForCellAtIndex:(NSUInteger)index
 {
-	// Use our bounds rather than our frame so the rotation transform is applied.
+    // We have to use our paging scroll view's bounds, not frame, to calculate the cell placement. When the device is in
+    // landscape orientation, the frame will still be in portrait because the pagingScrollView is the root view controller's
+    // view, so its frame is in window coordinate space, which is never rotated. Its bounds, however, will be in landscape
+    // because it has a rotation transform applied.
     CGRect bounds = self.bounds;
     CGRect cellFrame = bounds;
     cellFrame.size.width = [self.delegate scrollingRowView:self widthForCellAtIndex:index];
@@ -112,10 +107,10 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 {
 	// Calculate which pages should be visible
 	CGRect visibleBounds = self.bounds;
-    CGFloat cellWidth = [self.delegate scrollingRowView:self widthForCellAtIndex:0];
+	CGFloat cellWidth = [self.delegate scrollingRowView:self widthForCellAtIndex:0];
 	int firstNeededCellIndex = MAX(floorf(CGRectGetMinX(visibleBounds) / cellWidth), 0);
 	int lastNeededCellIndex = MIN(floorf((CGRectGetMaxX(visibleBounds) - 1) / cellWidth + cellWidth),
-								  [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath] - 1);
+				      [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath] - 1);
     
 	// Recycle no longer needed cells
 	for(JScrollingRowCell* cell in visibleCells)
@@ -130,14 +125,34 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 	// Remove recycled items from the visible set
 	[visibleCells minusSet:recycledCells];
 	
-	// Add any missing cells...
+	// Add any missing cells
 	for(NSUInteger index = firstNeededCellIndex; index <= lastNeededCellIndex; index++)
 	{
-		// ...that we're not displaying.
 		if(![self isDisplayingCellForIndex:index])
 		{
 			JScrollingRowCell* cell = [self.dataSource scrollingRowView:self cellForColumnAtIndex:index];
-            cell.frame = [self frameForCellAtIndex:index];
+			cell.frame = [self frameForCellAtIndex:index];
+			
+			if(![cell viewWithTag:kJScrollingRowCellSeparatorViewTag])
+			{
+				switch(cell.separatorStyle)
+				{
+					case kJScrollingRowCellSeparatorStyleNone:
+						break;
+					case kJScrollingRowCellSeparatorStylePlain:
+					{
+						UIView* separatorView = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(cell.contentView.frame) - 1,
+																						 0, 1, self.contentSize.height)];
+						separatorView.tag = kJScrollingRowCellSeparatorViewTag;
+						separatorView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
+						separatorView.backgroundColor = cell.separatorColor;
+						[cell.contentView addSubview:separatorView];
+						[separatorView release];
+						break;
+					}
+				}
+			}
+			
 			[visibleCells addObject:cell];
             [self addSubview:cell];
 		}
@@ -149,10 +164,9 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 {
 	NSSet* filteredSet = [recycledCells filteredSetUsingPredicate:[NSPredicate predicateWithFormat:@"reuseIdentifier == %@", identifier]];
 	JScrollingRowCell* cell = [filteredSet anyObject];
-	
 	if(cell)
 	{
-		// Take ownership so our cell doesn't disappear when we return
+		// So our cell doesn't disappear when we return
 		[[cell retain] autorelease];
 		[recycledCells removeObject:cell];
 	}
@@ -161,20 +175,12 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 }
 
 
-#pragma mark -
-#pragma mark Callbacks
-
 - (void)emptyRecycledCells
 {
 	[recycledCells removeAllObjects];
 }
 
 
-#pragma mark -
-#pragma mark Touch handling
-
-
-// Use the old style responder touch events to maintain 3.0 compatibility. I'm moving this to gesture recognizers once I drop 3.0 support.
 - (void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event
 {
 	if(!self.dragging)
@@ -188,7 +194,6 @@ NSString* const kJScrollingRowMemoryWarningNotification = @"kJScrollingRowMemory
 	else
 		[super touchesEnded:touches withEvent:event];
 }
-
 
 
 @end

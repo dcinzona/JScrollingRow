@@ -24,22 +24,37 @@
 #import <UIKit/UIKit.h>
 
 
+extern const NSInteger kJScrollingRowCellSeparatorViewTag;
+
+// None - no separator will be drawn
+// Plain - Single 1px line will be drawn, this is the default
+typedef enum
+{
+	kJScrollingRowCellSeparatorStyleNone,
+	kJScrollingRowCellSeparatorStylePlain
+} JScrollingRowCellSeparatorStyle;
+
+
 @interface JScrollingRowCell : UIView
 {
 	NSString* _reuseIdentifier;
 	UIView* _contentView;
 	NSUInteger _index;
+	JScrollingRowCellSeparatorStyle _separatorStyle;
+	UIColor* _separatorColor;
 }
 
 
 @property (nonatomic, readonly, copy) NSString* reuseIdentifier;
 @property (nonatomic, readonly, retain) UIView* contentView;
 @property (assign) NSUInteger index;
+@property (nonatomic, assign) JScrollingRowCellSeparatorStyle separatorStyle;
+@property (nonatomic, retain) UIColor* separatorColor;
 
 
 - (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString*)reuseIdentifier;
 
-// Called before a cell is reused. If you override this, ensure you call [super prepareForReuse]
+// Called before a rell is reused. If you override this, ensure you call [super prepareForReuse]
 - (void)prepareForReuse;
 
 

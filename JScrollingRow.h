@@ -28,11 +28,6 @@
 @class JScrollingRowCell;
 
 
-// Notification name you should use when receiving a memory warning in the controller. This will remove all the items
-// in the NSMutableSet that holds any cells that can be reused, for a potential reduction in memory usage.
-extern NSString* const kJScrollingRowMemoryWarningNotification;
-
-
 @protocol JScrollingRowDataSource
 // indexPath is provided as a reference to which section/row you may be in if you choose to place this in a UITableView.
 // You must set the indexPath property of JScrollingRow to receive the appropriate indexPath when this delegate is fired.

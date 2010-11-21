@@ -24,6 +24,9 @@
 #import "JScrollingRowCell.h"
 
 
+const NSInteger kJScrollingRowCellSeparatorViewTag = 999;
+
+
 @interface JScrollingRowCell ()
 @property (nonatomic, retain) UIView* contentView;
 @end
@@ -35,6 +38,8 @@
 @synthesize reuseIdentifier = _reuseIdentifier;
 @synthesize contentView = _contentView;
 @synthesize index = _index;
+@synthesize separatorStyle = _separatorStyle;
+@synthesize separatorColor = _separatorColor;
 
 
 #pragma mark -
@@ -44,7 +49,11 @@
 - (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString*)identifier
 {
 	if((self = [super initWithFrame:frame]))
+	{
 		_reuseIdentifier = [identifier copy];
+		_separatorStyle = kJScrollingRowCellSeparatorStylePlain;
+		_separatorColor = [UIColor blackColor];
+	}
 	return self;
 }
 
@@ -72,7 +81,6 @@
 #pragma mark Cell reuse
 
 
-// Currently empty, but do not refactor out.
 - (void)prepareForReuse
 {
 }
