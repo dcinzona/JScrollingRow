@@ -30,7 +30,8 @@
 
 @protocol JScrollingRowDataSource
 // indexPath is provided as a reference to which section/row you may be in if you choose to place this in a UITableView.
-// You must set the indexPath property of JScrollingRow to receive the appropriate indexPath when this delegate is fired.
+// You must set the indexPath property of JScrollingRow prior to receiving this delegate in order for the appropriate
+// indexPath when this delegate is fired.
 - (NSUInteger)numberOfColumnsInRow:(JScrollingRow*)scrollingRowView atIndexPath:(NSIndexPath*)indexPath;
 - (JScrollingRowCell*)scrollingRowView:(JScrollingRow*)scrollingRowView cellForColumnAtIndex:(NSUInteger)index;
 @end
@@ -38,8 +39,7 @@
 
 @protocol JScrollingRowDelegate
 @required
-// Please, please, PLEASE note that while this takes a cell index, and you could conceivably define different cell widths
-// for different indices, the width of cell at index 0 is assumed to be the width of all cells. You have been warned.
+// Widths of cells may be of varying sizes.
 - (CGFloat)scrollingRowView:(JScrollingRow*)scrollingRowView widthForCellAtIndex:(NSUInteger)index;
 @optional
 - (void)scrollingRowView:(JScrollingRow*)scrollingRowView didSelectCellAtIndex:(NSUInteger)index;

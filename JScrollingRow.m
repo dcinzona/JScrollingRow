@@ -45,9 +45,9 @@
 
 - (id)initWithFrame:(CGRect)frame
 {
-    if ((self = [super initWithFrame:frame]))
+	if((self = [super initWithFrame:frame]))
 	{
-        [self setShowsVerticalScrollIndicator:NO];
+	[self setShowsVerticalScrollIndicator:NO];
 		recycledCells = [[NSMutableSet alloc] init];
 		visibleCells = [[NSMutableSet alloc] init];
 		[[NSNotificationCenter defaultCenter] addObserver:self
@@ -55,7 +55,7 @@
 													 name:UIApplicationDidReceiveMemoryWarningNotification
 												   object:nil];
 	}
-    return self;
+	return self;
 }
 
 - (void)dealloc
@@ -107,11 +107,31 @@
 {
 	// Calculate which pages should be visible
 	CGRect visibleBounds = self.bounds;
-	CGFloat cellWidth = [self.delegate scrollingRowView:self widthForCellAtIndex:0];
-	int firstNeededCellIndex = MAX(floorf(CGRectGetMinX(visibleBounds) / cellWidth), 0);
-	int lastNeededCellIndex = MIN(floorf((CGRectGetMaxX(visibleBounds) - 1) / cellWidth + cellWidth),
-				      [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath] - 1);
-    
+	NSUInteger numCells = [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath];
+	CGFloat cellWidths[numCells];
+	CGFloat temp = 0.0f;
+	NSInteger firstNeededCellIndex = 0;
+	NSInteger lastNeededCellIndex = 0;
+	NSUInteger numVisibleCellIndices = 0;
+	CGPoint contentOffset = self.contentOffset;
+	CGFloat visibleMaxX = CGRectGetMaxX(visibleBounds);
+	
+	for(NSUInteger i = 0; i < numCells; i++)
+	{
+		cellWidths[i] = [self.delegate scrollingRowView:self widthForCellAtIndex:i];
+		temp += cellWidths[i];
+		if(temp < contentOffset.x)
+			firstNeededCellIndex = i;
+		else if(temp >= contentOffset.x + visibleMaxX && temp - cellWidths[i] < contentOffset.x + visibleMaxX)
+			lastNeededCellIndex = firstNeededCellIndex + 1 + numVisibleCellIndices + 1;
+	}
+	
+	// Sanity checking
+	if(lastNeededCellIndex >= numCells)
+		lastNeededCellIndex = numCells - 1;
+	if(lastNeededCellIndex < 0)
+		lastNeededCellIndex = firstNeededCellIndex = 0;
+	
 	// Recycle no longer needed cells
 	for(JScrollingRowCell* cell in visibleCells)
 	{
@@ -154,7 +174,7 @@
 			}
 			
 			[visibleCells addObject:cell];
-            [self addSubview:cell];
+			[self addSubview:cell];
 		}
 	}
 }
@@ -187,9 +207,25 @@
 	{
 		UITouch* touch = [touches anyObject];
 		CGPoint location = [touch locationInView:self];
-		NSUInteger index = location.x / [self.delegate scrollingRowView:self widthForCellAtIndex:0];
-		if([self.delegate respondsToSelector:@selector(scrollingRowView:didSelectCellAtIndex:)])
-			[self.delegate scrollingRowView:self didSelectCellAtIndex:index];
+		
+		NSUInteger numCells = [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath];
+		CGFloat cellWidths[numCells];
+		CGFloat temp = 0.0f;
+		CGFloat temp2 = 0.0f;
+		
+		for(NSUInteger i = 0; i < numCells; i++)
+		{
+			cellWidths[i] = [self.delegate scrollingRowView:self widthForCellAtIndex:i];
+			temp += cellWidths[i];
+			
+			if(location.x < temp && location.x >= temp2)
+			{
+				if([self.delegate respondsToSelector:@selector(scrollingRowView:didSelectCellAtIndex:)])
+					[self.delegate scrollingRowView:self didSelectCellAtIndex:i];
+			}
+			
+			temp2 += cellWidths[i];
+		}		
 	}
 	else
 		[super touchesEnded:touches withEvent:event];
