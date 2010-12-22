@@ -83,6 +83,9 @@ const NSInteger kJScrollingRowCellSeparatorViewTag = 999;
 
 - (void)prepareForReuse
 {
+	// Currently doesn't do anything, but in the future, when cell selection highlights are introduced,
+	// this is where we'll clear those, just in case. Be sure if you override this method, to call super
+	// before you implement your custom behaviour.
 }
 
 

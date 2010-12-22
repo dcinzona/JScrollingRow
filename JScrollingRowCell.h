@@ -54,7 +54,8 @@ typedef enum
 
 - (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString*)reuseIdentifier;
 
-// Called before a rell is reused. If you override this, ensure you call [super prepareForReuse]
+// Called before a cell is reused. If you override this, ensure you call [super prepareForReuse]
+// prior to your implementation.
 - (void)prepareForReuse;
 
 

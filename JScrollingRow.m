@@ -45,9 +45,9 @@
 
 - (id)initWithFrame:(CGRect)frame
 {
-    if ((self = [super initWithFrame:frame]))
+	if((self = [super initWithFrame:frame]))
 	{
-        [self setShowsVerticalScrollIndicator:NO];
+	[self setShowsVerticalScrollIndicator:NO];
 		recycledCells = [[NSMutableSet alloc] init];
 		visibleCells = [[NSMutableSet alloc] init];
 		[[NSNotificationCenter defaultCenter] addObserver:self
@@ -55,7 +55,7 @@
 													 name:UIApplicationDidReceiveMemoryWarningNotification
 												   object:nil];
 	}
-    return self;
+	return self;
 }
 
 - (void)dealloc
@@ -115,11 +115,6 @@
 	NSUInteger numVisibleCellIndices = 0;
 	CGPoint contentOffset = self.contentOffset;
 	CGFloat visibleMaxX = CGRectGetMaxX(visibleBounds);
-	/*
-	 CGFloat cellWidth = [self.delegate scrollingRowView:self widthForCellAtIndex:0];
-	 int firstNeededCellIndex = MAX(floorf(CGRectGetMinX(visibleBounds) / cellWidth), 0);
-	 int lastNeededCellIndex = MIN(floorf((CGRectGetMaxX(visibleBounds) - 1) / cellWidth + cellWidth), [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath] - 1);
-	 */
 	
 	for(NSUInteger i = 0; i < numCells; i++)
 	{
@@ -136,7 +131,7 @@
 		lastNeededCellIndex = numCells - 1;
 	if(lastNeededCellIndex < 0)
 		lastNeededCellIndex = firstNeededCellIndex = 0;
-    
+	
 	// Recycle no longer needed cells
 	for(JScrollingRowCell* cell in visibleCells)
 	{
@@ -179,7 +174,7 @@
 			}
 			
 			[visibleCells addObject:cell];
-            [self addSubview:cell];
+			[self addSubview:cell];
 		}
 	}
 }
@@ -212,11 +207,6 @@
 	{
 		UITouch* touch = [touches anyObject];
 		CGPoint location = [touch locationInView:self];
-		/*
-		NSUInteger index = location.x / [self.delegate scrollingRowView:self widthForCellAtIndex:0];
-		if([self.delegate respondsToSelector:@selector(scrollingRowView:didSelectCellAtIndex:)])
-			[self.delegate scrollingRowView:self didSelectCellAtIndex:index];
-		 */
 		
 		NSUInteger numCells = [self.dataSource numberOfColumnsInRow:self atIndexPath:self.indexPath];
 		CGFloat cellWidths[numCells];
